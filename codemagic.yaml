@@ -1,0 +1,46 @@
+workflows:
+  jalanku-android-debug:
+    name: JalanKu Android debug APK
+    max_build_duration: 60
+    environment:
+      flutter: stable
+    scripts:
+      - name: Generate Android and iOS platform folders if absent
+        script: |
+          if [ ! -d android ] || [ ! -d ios ]; then
+            flutter create --platforms=android,ios --org com.example.jalanku .
+          fi
+      - name: Resolve packages
+        script: flutter pub get
+      - name: Static analysis
+        script: flutter analyze
+      - name: Widget tests
+        script: flutter test
+      - name: Build Android debug APK
+        script: flutter build apk --debug
+    artifacts:
+      - build/app/outputs/flutter-apk/app-debug.apk
+      - build/**/outputs/**/*.log
+  jalanku-ios-check:
+    name: JalanKu iOS unsigned build check
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Generate Android and iOS platform folders if absent
+        script: |
+          if [ ! -d android ] || [ ! -d ios ]; then
+            flutter create --platforms=android,ios --org com.example.jalanku .
+          fi
+      - name: Resolve packages
+        script: flutter pub get
+      - name: Static analysis
+        script: flutter analyze
+      - name: Widget tests
+        script: flutter test
+      - name: Build iOS without signing
+        script: flutter build ios --debug --no-codesign
+    artifacts:
+      - build/ios/iphoneos/**/*.app
+      - /tmp/xcodebuild_logs/*.log
